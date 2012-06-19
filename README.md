@@ -2,7 +2,8 @@ An easy way to send emails with attachments
 
 **Send attachments**
 
-```m := email.NewMessage("Hi", "this is the body")
+```go
+m := email.NewMessage("Hi", "this is the body")
 
 err := m.AddAttachment("picture.png")
 if err != nil {
@@ -18,15 +19,18 @@ err = email.Send(
 
 if err != nil {
 	log.Fatal(err)
-}```
+}
+```
 
 
 **Send without requiring TLS**
 
-```err = email.Send(
+```go
+err = email.Send(
 	"mail.padelclick.com:25",
 	email.InsecureAuth("user", "password"),
 	"from@example.com",
 	[]string{"to@example.com"},
-	m)```
+	m)
+```
 	
