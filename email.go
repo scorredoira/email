@@ -5,18 +5,21 @@ package email
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io/ioutil"
 	"net/smtp"
 	"path/filepath"
 )
 
 type Message struct {
+	From        string
+	To          []string
 	Subject     string
 	Body        string
 	Attachments map[string][]byte
 }
 
-func (m *Message) AddAttachment(file string) error {
+func (m *Message) Attach(file string) error {
 	b, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
@@ -69,6 +72,36 @@ func (m *Message) Bytes() []byte {
 	return buf.Bytes()
 }
 
-func Send(addr string, auth smtp.Auth, from string, to []string, m *Message) error {
-	return smtp.SendMail(addr, auth, from, to, m.Bytes())
+func Send(addr string, auth smtp.Auth, m *Message) error {
+	return smtp.SendMail(addr, auth, m.From, m.To, m.Bytes())
+}
+
+func SendUnencrypted(addr, user, password string, m *Message) error {
+	auth := UnEncryptedAuth(user, password)
+	return smtp.SendMail(addr, auth, m.From, m.To, m.Bytes())
+}
+
+type unEncryptedAuth struct {
+	username, password string
+}
+
+// InsecureAuth returns an Auth that implements the PLAIN authentication
+// mechanism as defined in RFC 4616.
+// The returned Auth uses the given username and password to authenticate
+// without checking a TLS connection or host like smtp.PlainAuth does.
+func UnEncryptedAuth(username, password string) smtp.Auth {
+	return &unEncryptedAuth{username, password}
+}
+
+func (a *unEncryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	resp := []byte("\x00" + a.username + "\x00" + a.password)
+	return "PLAIN", resp, nil
+}
+
+func (a *unEncryptedAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if more {
+		// We've already sent everything.
+		return nil, errors.New("unexpected server challenge")
+	}
+	return nil, nil
 }
