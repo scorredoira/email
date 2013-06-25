@@ -10,11 +10,14 @@ import (
 	"io/ioutil"
 	"net/smtp"
 	"path/filepath"
+	"strings"
 )
 
 type Message struct {
 	From            string
 	To              []string
+	Cc          []string
+	Bcc         []string
 	Subject         string
 	Body            string
 	BodyContentType string
@@ -45,9 +48,24 @@ func NewHTMLMessage(subject string, body string) *Message {
 	return m
 }
 
+func (m *Message) Tolist() []string {
+	tolist := m.To
+	for _, cc := range m.Cc {
+		tolist = append(tolist, cc)
+	}
+	for _, bcc := range m.Bcc {
+		tolist = append(tolist, bcc)
+	}
+	return tolist
+}
+
 func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
-
+	buf.WriteString("From: " + m.From + "\n")
+	buf.WriteString("To: " + strings.Join(m.To, ",") + "\n")
+	if len(m.Cc) > 0 {
+		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\n")
+	}
 	buf.WriteString("Subject: " + m.Subject + "\n")
 	buf.WriteString("MIME-Version: 1.0\n")
 
@@ -81,12 +99,12 @@ func (m *Message) Bytes() []byte {
 }
 
 func Send(addr string, auth smtp.Auth, m *Message) error {
-	return smtp.SendMail(addr, auth, m.From, m.To, m.Bytes())
+	return smtp.SendMail(addr, auth, m.From, m.Tolist(), m.Bytes())
 }
 
 func SendUnencrypted(addr, user, password string, m *Message) error {
 	auth := UnEncryptedAuth(user, password)
-	return smtp.SendMail(addr, auth, m.From, m.To, m.Bytes())
+	return smtp.SendMail(addr, auth, m.From, m.Tolist(), m.Bytes())
 }
 
 type unEncryptedAuth struct {
