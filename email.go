@@ -6,17 +6,19 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/smtp"
 	"path/filepath"
 )
 
 type Message struct {
-	From        string
-	To          []string
-	Subject     string
-	Body        string
-	Attachments map[string][]byte
+	From            string
+	To              []string
+	Subject         string
+	Body            string
+	BodyContentType string
+	Attachments     map[string][]byte
 }
 
 func (m *Message) Attach(file string) error {
@@ -32,7 +34,13 @@ func (m *Message) Attach(file string) error {
 
 // NewMessage returns a new Message that can compose an email with attachments
 func NewMessage(subject string, body string) *Message {
-	m := &Message{Subject: subject, Body: body}
+	m := &Message{Subject: subject, Body: body, BodyContentType: "text/plain"}
+	m.Attachments = make(map[string][]byte)
+	return m
+}
+
+func NewHTMLMessage(subject string, body string) *Message {
+	m := &Message{Subject: subject, Body: body, BodyContentType: "text/html"}
 	m.Attachments = make(map[string][]byte)
 	return m
 }
@@ -50,7 +58,7 @@ func (m *Message) Bytes() []byte {
 		buf.WriteString("--" + boundary + "\n")
 	}
 
-	buf.WriteString("Content-Type: text/plain; charset=utf-8\n")
+	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\n", m.BodyContentType))
 	buf.WriteString(m.Body)
 
 	if len(m.Attachments) > 0 {
