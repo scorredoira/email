@@ -1,4 +1,4 @@
-An easy way to send emails with attachments
+An easy way to send emails with attachments in Go
 
 **Send attachments**
 
