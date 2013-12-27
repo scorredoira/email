@@ -16,8 +16,8 @@ import (
 type Message struct {
 	From            string
 	To              []string
-	Cc          []string
-	Bcc         []string
+	Cc              []string
+	Bcc             []string
 	Subject         string
 	Body            string
 	BodyContentType string
