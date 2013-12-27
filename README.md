@@ -14,11 +14,3 @@ if err != nil {
 
 err = email.Send("smtp.gmail.com:587", smtp.PlainAuth("", "user", "password", "smtp.gmail.com"), m)
 ```
-
-
-**Send unencrypted password**
-
-```go
-err = email.SendUnencrypted("mail.example.com:25", "user", "password", m)
-```
-	
