@@ -111,7 +111,7 @@ type unEncryptedAuth struct {
 	username, password string
 }
 
-// InsecureAuth returns an Auth that implements the PLAIN authentication
+// UnEncryptedAuth returns an Auth that implements the PLAIN authentication
 // mechanism as defined in RFC 4616.
 // The returned Auth uses the given username and password to authenticate
 // without checking a TLS connection or host like smtp.PlainAuth does.
