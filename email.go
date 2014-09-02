@@ -36,44 +36,55 @@ func (m *Message) Attach(file string) error {
 	}
 
 	_, filename := filepath.Split(file)
+
 	m.Attachments[filename] = &Attachment{
 		Filename: filename,
 		Data:     data,
 	}
+
 	return nil
+}
+
+func newMessage(subject string, body string, bodyContentType string) *Message {
+	m := &Message{Subject: subject, Body: body, BodyContentType: bodyContentType}
+
+	m.Attachments = make(map[string]*Attachment)
+
+	return m
 }
 
 // NewMessage returns a new Message that can compose an email with attachments
 func NewMessage(subject string, body string) *Message {
-	m := &Message{Subject: subject, Body: body, BodyContentType: "text/plain"}
-	m.Attachments = make(map[string]*Attachment)
-	return m
+	return newMessage(subject, body, "text/plain")
 }
 
 func NewHTMLMessage(subject string, body string) *Message {
-	m := &Message{Subject: subject, Body: body, BodyContentType: "text/html"}
-	m.Attachments = make(map[string]*Attachment)
-	return m
+	return newMessage(subject, body, "text/html")
 }
 
 func (m *Message) Tolist() []string {
 	tolist := m.To
+
 	for _, cc := range m.Cc {
 		tolist = append(tolist, cc)
 	}
+
 	for _, bcc := range m.Bcc {
 		tolist = append(tolist, bcc)
 	}
+
 	return tolist
 }
 
 func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
+
 	buf.WriteString("From: " + m.From + "\n")
 	buf.WriteString("To: " + strings.Join(m.To, ",") + "\n")
 	if len(m.Cc) > 0 {
 		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\n")
 	}
+
 	buf.WriteString("Subject: " + m.Subject + "\n")
 	buf.WriteString("MIME-Version: 1.0\n")
 
@@ -114,6 +125,7 @@ func Send(addr string, auth smtp.Auth, m *Message) error {
 
 func SendUnencrypted(addr, user, password string, m *Message) error {
 	auth := UnEncryptedAuth(user, password)
+
 	return smtp.SendMail(addr, auth, m.From, m.Tolist(), m.Bytes())
 }
 
@@ -131,6 +143,7 @@ func UnEncryptedAuth(username, password string) smtp.Auth {
 
 func (a *unEncryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	resp := []byte("\x00" + a.username + "\x00" + a.password)
+
 	return "PLAIN", resp, nil
 }
 
@@ -139,5 +152,6 @@ func (a *unEncryptedAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 		// We've already sent everything.
 		return nil, errors.New("unexpected server challenge")
 	}
+
 	return nil, nil
 }
