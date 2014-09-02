@@ -13,6 +13,11 @@ import (
 	"strings"
 )
 
+type Attachment struct {
+	Filename string
+	Data     []byte
+}
+
 type Message struct {
 	From            string
 	To              []string
@@ -21,30 +26,33 @@ type Message struct {
 	Subject         string
 	Body            string
 	BodyContentType string
-	Attachments     map[string][]byte
+	Attachments     map[string]*Attachment
 }
 
 func (m *Message) Attach(file string) error {
-	b, err := ioutil.ReadFile(file)
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}
 
-	_, fileName := filepath.Split(file)
-	m.Attachments[fileName] = b
+	_, filename := filepath.Split(file)
+	m.Attachments[filename] = &Attachment{
+		Filename: filename,
+		Data:     data,
+	}
 	return nil
 }
 
 // NewMessage returns a new Message that can compose an email with attachments
 func NewMessage(subject string, body string) *Message {
 	m := &Message{Subject: subject, Body: body, BodyContentType: "text/plain"}
-	m.Attachments = make(map[string][]byte)
+	m.Attachments = make(map[string]*Attachment)
 	return m
 }
 
 func NewHTMLMessage(subject string, body string) *Message {
 	m := &Message{Subject: subject, Body: body, BodyContentType: "text/html"}
-	m.Attachments = make(map[string][]byte)
+	m.Attachments = make(map[string]*Attachment)
 	return m
 }
 
@@ -80,15 +88,17 @@ func (m *Message) Bytes() []byte {
 	buf.WriteString(m.Body)
 
 	if len(m.Attachments) > 0 {
-		for k, v := range m.Attachments {
+		for _, attachment := range m.Attachments {
 			buf.WriteString("\n\n--" + boundary + "\n")
+
 			buf.WriteString("Content-Type: application/octet-stream\n")
 			buf.WriteString("Content-Transfer-Encoding: base64\n")
-			buf.WriteString("Content-Disposition: attachment; filename=\"" + k + "\"\n\n")
+			buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\n\n")
 
-			b := make([]byte, base64.StdEncoding.EncodedLen(len(v)))
-			base64.StdEncoding.Encode(b, v)
+			b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
+			base64.StdEncoding.Encode(b, attachment.Data)
 			buf.Write(b)
+
 			buf.WriteString("\n--" + boundary)
 		}
 
