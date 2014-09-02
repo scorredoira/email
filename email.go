@@ -16,6 +16,7 @@ import (
 type Attachment struct {
 	Filename string
 	Data     []byte
+	Inline   bool
 }
 
 type Message struct {
@@ -29,7 +30,7 @@ type Message struct {
 	Attachments     map[string]*Attachment
 }
 
-func (m *Message) Attach(file string) error {
+func (m *Message) attach(file string, inline bool) error {
 	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
@@ -40,9 +41,18 @@ func (m *Message) Attach(file string) error {
 	m.Attachments[filename] = &Attachment{
 		Filename: filename,
 		Data:     data,
+		Inline:   inline,
 	}
 
 	return nil
+}
+
+func (m *Message) Attach(file string) error {
+	return m.attach(file, false)
+}
+
+func (m *Message) Inline(file string) error {
+	return m.attach(file, true)
 }
 
 func newMessage(subject string, body string, bodyContentType string) *Message {
@@ -102,13 +112,20 @@ func (m *Message) Bytes() []byte {
 		for _, attachment := range m.Attachments {
 			buf.WriteString("\n\n--" + boundary + "\n")
 
-			buf.WriteString("Content-Type: application/octet-stream\n")
-			buf.WriteString("Content-Transfer-Encoding: base64\n")
-			buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\n\n")
+			if attachment.Inline {
+				buf.WriteString("Content-Type: message/rfc822\n")
+				buf.WriteString("Content-Disposition: inline; filename=\"" + attachment.Filename + "\"\n\n")
 
-			b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
-			base64.StdEncoding.Encode(b, attachment.Data)
-			buf.Write(b)
+				buf.Write(attachment.Data)
+			} else {
+				buf.WriteString("Content-Type: application/octet-stream\n")
+				buf.WriteString("Content-Transfer-Encoding: base64\n")
+				buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\n\n")
+
+				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
+				base64.StdEncoding.Encode(b, attachment.Data)
+				buf.Write(b)
+			}
 
 			buf.WriteString("\n--" + boundary)
 		}
