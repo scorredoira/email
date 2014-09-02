@@ -13,6 +13,12 @@ import (
 	"strings"
 )
 
+type Attachment struct {
+	Filename string
+	Data     []byte
+	Inline   bool
+}
+
 type Message struct {
 	From            string
 	To              []string
@@ -21,51 +27,74 @@ type Message struct {
 	Subject         string
 	Body            string
 	BodyContentType string
-	Attachments     map[string][]byte
+	Attachments     map[string]*Attachment
 }
 
-func (m *Message) Attach(file string) error {
-	b, err := ioutil.ReadFile(file)
+func (m *Message) attach(file string, inline bool) error {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}
 
-	_, fileName := filepath.Split(file)
-	m.Attachments[fileName] = b
+	_, filename := filepath.Split(file)
+
+	m.Attachments[filename] = &Attachment{
+		Filename: filename,
+		Data:     data,
+		Inline:   inline,
+	}
+
 	return nil
+}
+
+func (m *Message) Attach(file string) error {
+	return m.attach(file, false)
+}
+
+func (m *Message) Inline(file string) error {
+	return m.attach(file, true)
+}
+
+func newMessage(subject string, body string, bodyContentType string) *Message {
+	m := &Message{Subject: subject, Body: body, BodyContentType: bodyContentType}
+
+	m.Attachments = make(map[string]*Attachment)
+
+	return m
 }
 
 // NewMessage returns a new Message that can compose an email with attachments
 func NewMessage(subject string, body string) *Message {
-	m := &Message{Subject: subject, Body: body, BodyContentType: "text/plain"}
-	m.Attachments = make(map[string][]byte)
-	return m
+	return newMessage(subject, body, "text/plain")
 }
 
 func NewHTMLMessage(subject string, body string) *Message {
-	m := &Message{Subject: subject, Body: body, BodyContentType: "text/html"}
-	m.Attachments = make(map[string][]byte)
-	return m
+	return newMessage(subject, body, "text/html")
 }
 
 func (m *Message) Tolist() []string {
 	tolist := m.To
+
 	for _, cc := range m.Cc {
 		tolist = append(tolist, cc)
 	}
+
 	for _, bcc := range m.Bcc {
 		tolist = append(tolist, bcc)
 	}
+
 	return tolist
 }
 
 func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
+
 	buf.WriteString("From: " + m.From + "\n")
 	buf.WriteString("To: " + strings.Join(m.To, ",") + "\n")
 	if len(m.Cc) > 0 {
 		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\n")
 	}
+
 	buf.WriteString("Subject: " + m.Subject + "\n")
 	buf.WriteString("MIME-Version: 1.0\n")
 
@@ -80,15 +109,24 @@ func (m *Message) Bytes() []byte {
 	buf.WriteString(m.Body)
 
 	if len(m.Attachments) > 0 {
-		for k, v := range m.Attachments {
+		for _, attachment := range m.Attachments {
 			buf.WriteString("\n\n--" + boundary + "\n")
-			buf.WriteString("Content-Type: application/octet-stream\n")
-			buf.WriteString("Content-Transfer-Encoding: base64\n")
-			buf.WriteString("Content-Disposition: attachment; filename=\"" + k + "\"\n\n")
 
-			b := make([]byte, base64.StdEncoding.EncodedLen(len(v)))
-			base64.StdEncoding.Encode(b, v)
-			buf.Write(b)
+			if attachment.Inline {
+				buf.WriteString("Content-Type: message/rfc822\n")
+				buf.WriteString("Content-Disposition: inline; filename=\"" + attachment.Filename + "\"\n\n")
+
+				buf.Write(attachment.Data)
+			} else {
+				buf.WriteString("Content-Type: application/octet-stream\n")
+				buf.WriteString("Content-Transfer-Encoding: base64\n")
+				buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\n\n")
+
+				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
+				base64.StdEncoding.Encode(b, attachment.Data)
+				buf.Write(b)
+			}
+
 			buf.WriteString("\n--" + boundary)
 		}
 
@@ -104,6 +142,7 @@ func Send(addr string, auth smtp.Auth, m *Message) error {
 
 func SendUnencrypted(addr, user, password string, m *Message) error {
 	auth := UnEncryptedAuth(user, password)
+
 	return smtp.SendMail(addr, auth, m.From, m.Tolist(), m.Bytes())
 }
 
@@ -121,6 +160,7 @@ func UnEncryptedAuth(username, password string) smtp.Auth {
 
 func (a *unEncryptedAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
 	resp := []byte("\x00" + a.username + "\x00" + a.password)
+
 	return "PLAIN", resp, nil
 }
 
@@ -129,5 +169,6 @@ func (a *unEncryptedAuth) Next(fromServer []byte, more bool) ([]byte, error) {
 		// We've already sent everything.
 		return nil, errors.New("unexpected server challenge")
 	}
+
 	return nil, nil
 }
