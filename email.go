@@ -107,6 +107,7 @@ func (m *Message) Bytes() []byte {
 
 	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\n\n", m.BodyContentType))
 	buf.WriteString(m.Body)
+	buf.WriteString("\n")
 
 	if len(m.Attachments) > 0 {
 		for _, attachment := range m.Attachments {
