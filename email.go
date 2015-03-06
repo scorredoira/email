@@ -67,10 +67,12 @@ func NewMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/plain")
 }
 
+// NewMessage returns a new Message that can compose an HTML email with attachments
 func NewHTMLMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/html")
 }
 
+// ToList returns all the recipients of the email
 func (m *Message) Tolist() []string {
 	tolist := m.To
 
@@ -85,6 +87,7 @@ func (m *Message) Tolist() []string {
 	return tolist
 }
 
+// Bytes returns the mail data
 func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
 
