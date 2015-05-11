@@ -10,6 +10,7 @@ import (
 	"net/smtp"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Attachment struct {
@@ -92,6 +93,10 @@ func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
 
 	buf.WriteString("From: " + m.From + "\n")
+
+	t := time.Now()
+	buf.WriteString("Date: " + t.Format(time.RFC822) + "\n")
+
 	buf.WriteString("To: " + strings.Join(m.To, ",") + "\n")
 	if len(m.Cc) > 0 {
 		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\n")
