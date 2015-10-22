@@ -6,12 +6,67 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/smtp"
 	"path/filepath"
 	"strings"
 	"time"
 )
+
+const lineMaxLen = 76
+
+type AttachmentWriter struct {
+	w    io.Writer
+	i    int
+	line [78]byte
+}
+
+// NewAttachmentWriter returns a new AttachmentWriter that writes base64 encoded
+// attachments to the underlying writer in lines no more than 76 characters each.
+func NewAttachmentWriter(w io.Writer) *AttachmentWriter {
+	return &AttachmentWriter{
+		w: w,
+	}
+}
+
+// Write writes the bytes from p to the underlying writer in lines no more than
+// 76 characters each.
+func (w *AttachmentWriter) Write(p []byte) (n int, err error) {
+	for i, b := range p {
+		w.line[w.i] = b
+		w.i++
+		n = i
+
+		if w.i == lineMaxLen {
+			w.insertCRLF()
+		}
+	}
+
+	if err := w.flush(); err != nil {
+		return n, err
+	}
+
+	return len(p), nil
+}
+
+func (w *AttachmentWriter) insertCRLF() error {
+	w.line[w.i] = '\r'
+	w.line[w.i+1] = '\n'
+	w.i += 2
+
+	return w.flush()
+}
+
+func (w *AttachmentWriter) flush() error {
+	if _, err := w.w.Write(w.line[:w.i]); err != nil {
+		return err
+	}
+
+	w.i = 0
+
+	return nil
+}
 
 type Attachment struct {
 	Filename string
@@ -132,7 +187,9 @@ func (m *Message) Bytes() []byte {
 
 				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
 				base64.StdEncoding.Encode(b, attachment.Data)
-				buf.Write(b)
+
+				aw := NewAttachmentWriter(buf)
+				aw.Write(b)
 			}
 
 			buf.WriteString("\n--" + boundary)
