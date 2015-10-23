@@ -92,50 +92,50 @@ func (m *Message) Tolist() []string {
 func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
 
-	buf.WriteString("From: " + m.From + "\n")
+	buf.WriteString("From: " + m.From + "\r\n")
 
 	t := time.Now()
-	buf.WriteString("Date: " + t.Format(time.RFC822) + "\n")
+	buf.WriteString("Date: " + t.Format(time.RFC822) + "\r\n")
 
-	buf.WriteString("To: " + strings.Join(m.To, ",") + "\n")
+	buf.WriteString("To: " + strings.Join(m.To, ",") + "\r\n")
 	if len(m.Cc) > 0 {
-		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\n")
+		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\r\n")
 	}
 
-	buf.WriteString("Subject: " + m.Subject + "\n")
-	buf.WriteString("MIME-Version: 1.0\n")
+	buf.WriteString("Subject: " + m.Subject + "\r\n")
+	buf.WriteString("MIME-Version: 1.0\r\n")
 
 	boundary := "f46d043c813270fc6b04c2d223da"
 
 	if len(m.Attachments) > 0 {
-		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary + "\n")
-		buf.WriteString("--" + boundary + "\n")
+		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary + "\r\n")
+		buf.WriteString("--" + boundary + "\r\n")
 	}
 
-	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\n\n", m.BodyContentType))
+	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\r\n\r\n", m.BodyContentType))
 	buf.WriteString(m.Body)
-	buf.WriteString("\n")
+	buf.WriteString("\r\n")
 
 	if len(m.Attachments) > 0 {
 		for _, attachment := range m.Attachments {
-			buf.WriteString("\n\n--" + boundary + "\n")
+			buf.WriteString("\r\n\r\n--" + boundary + "\r\n")
 
 			if attachment.Inline {
-				buf.WriteString("Content-Type: message/rfc822\n")
-				buf.WriteString("Content-Disposition: inline; filename=\"" + attachment.Filename + "\"\n\n")
+				buf.WriteString("Content-Type: message/rfc822\r\n")
+				buf.WriteString("Content-Disposition: inline; filename=\"" + attachment.Filename + "\"\r\n\r\n")
 
 				buf.Write(attachment.Data)
 			} else {
-				buf.WriteString("Content-Type: application/octet-stream\n")
-				buf.WriteString("Content-Transfer-Encoding: base64\n")
-				buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\n\n")
+				buf.WriteString("Content-Type: application/octet-stream\r\n")
+				buf.WriteString("Content-Transfer-Encoding: base64\r\n")
+				buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\r\n\r\n")
 
 				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
 				base64.StdEncoding.Encode(b, attachment.Data)
 				buf.Write(b)
 			}
 
-			buf.WriteString("\n--" + boundary)
+			buf.WriteString("\r\n--" + boundary)
 		}
 
 		buf.WriteString("--")
