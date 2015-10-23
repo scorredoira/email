@@ -132,7 +132,14 @@ func (m *Message) Bytes() []byte {
 
 				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
 				base64.StdEncoding.Encode(b, attachment.Data)
-				buf.Write(b)
+
+				// write base64 content in lines of up to 76 chars
+				for i, l := 0, len(b); i < l; i++ {
+					buf.WriteByte(b[i])
+					if (i+1)%76 == 0 {
+						buf.WriteString("\r\n")
+					}
+				}
 			}
 
 			buf.WriteString("\r\n--" + boundary)
