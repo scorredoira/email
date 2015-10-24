@@ -24,6 +24,7 @@ type Message struct {
 	To              []string
 	Cc              []string
 	Bcc             []string
+	ReplyTo         string
 	Subject         string
 	Body            string
 	BodyContentType string
@@ -103,6 +104,11 @@ func (m *Message) Bytes() []byte {
 	}
 
 	buf.WriteString("Subject: " + m.Subject + "\r\n")
+
+	if len(m.ReplyTo) > 0 {
+		buf.WriteString("Reply-To: " + m.ReplyTo + "\r\n")
+	}
+
 	buf.WriteString("MIME-Version: 1.0\r\n")
 
 	boundary := "f46d043c813270fc6b04c2d223da"
