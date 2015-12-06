@@ -41,6 +41,7 @@ if err != nil {
 err = email.Send("smtp.gmail.com:587", smtp.PlainAuth("", "user", "password", "smtp.gmail.com"), m)
 ```
 
+**LICENSE**
 
 The MIT License (MIT)
 
