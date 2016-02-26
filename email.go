@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"mime"
 	"net/smtp"
 	"path/filepath"
 	"strings"
@@ -45,6 +46,15 @@ func (m *Message) attach(file string, inline bool) error {
 		Inline:   inline,
 	}
 
+	return nil
+}
+
+func (m *Message) AttachBuffer(filename string, buf []byte, inline bool) error {
+	m.Attachments[filename] = &Attachment{
+		Filename: filename,
+		Data:     buf,
+		Inline:   inline,
+	}
 	return nil
 }
 
@@ -132,7 +142,14 @@ func (m *Message) Bytes() []byte {
 
 				buf.Write(attachment.Data)
 			} else {
-				buf.WriteString("Content-Type: application/octet-stream\r\n")
+				ext := filepath.Ext(attachment.Filename)
+				mimetype := mime.TypeByExtension(ext)
+				if mimetype != "" {
+					mime := fmt.Sprintf("Content-Type: %s\r\n", mimetype)
+					buf.WriteString(mime)
+				} else {
+					buf.WriteString("Content-Type: application/octet-stream\r\n")
+				}
 				buf.WriteString("Content-Transfer-Encoding: base64\r\n")
 				buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\r\n\r\n")
 
