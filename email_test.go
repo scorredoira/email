@@ -1,7 +1,6 @@
 package email
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/smtp"
 	"strings"
 	"testing"
@@ -35,7 +34,8 @@ func TestAttachment(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	assert.Equal(t, strings.Contains(string(m.Bytes()), "text/calendar"), true,
-		"Email message contains calendar",
-	)
+	if strings.Contains(string(m.Bytes()), "text/calendar") == false {
+		t.Errorf("Issue with mailer")
+
+	}
 }
