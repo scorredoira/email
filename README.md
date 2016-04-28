@@ -14,11 +14,15 @@ package main
 import (
     "github.com/scorredoira/email"
     "net/smtp"
+    "net/mail"
 )
 
 func main() {
     m := email.NewMessage("Hi", "this is the body")
-    m.From = "from@example.com"
+    m.From = mail.Address{
+        Name: "From Name",
+        Address: "from@example.com",
+    }
     m.To = []string{"to@example.com"}
     m.Cc = []string{"cc1@example.com", "cc2@example.com"}
     m.Bcc = []string{"bcc1@example.com", "bcc2@example.com"}
@@ -31,7 +35,10 @@ func main() {
 
 ```go
 m := email.NewMessage("Hi", "this is the body")
-m.From = "from@example.com"
+m.From = mail.Address{
+    Name: "From Name",
+    Address: "from@example.com",
+}
 m.To = []string{"to@example.com"}
 err := m.Attach("picture.png")
 if err != nil {

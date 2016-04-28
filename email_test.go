@@ -1,6 +1,7 @@
 package email
 
 import (
+	"net/mail"
 	"net/smtp"
 	"strings"
 	"testing"
@@ -8,7 +9,10 @@ import (
 
 func TestSend(t *testing.T) {
 	m := NewMessage("Hi", "this is the body")
-	m.From = "to@example.com"
+	m.From = mail.Address{
+		Name:    "From Name",
+		Address: "from@example.com",
+	}
 	m.To = []string{"to@example.com"}
 	m.Cc = []string{"to@example.com", "to@example.com"}
 	m.Bcc = []string{"to@example.com", "to@example.com"}
@@ -26,7 +30,10 @@ func TestSend(t *testing.T) {
 
 func TestAttachment(t *testing.T) {
 	m := NewMessage("Hi", "this is the body")
-	m.From = "to@example.com"
+	m.From = mail.Address{
+		Name:    "From Name",
+		Address: "from@example.com",
+	}
 	m.To = []string{"to@example.com"}
 	m.Cc = []string{"to@example.com", "to@example.com"}
 	m.Bcc = []string{"to@example.com", "to@example.com"}
