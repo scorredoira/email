@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"mime"
+	"net/mail"
 	"net/smtp"
 	"path/filepath"
 	"strings"
@@ -21,7 +22,7 @@ type Attachment struct {
 }
 
 type Message struct {
-	From            string
+	From            mail.Address
 	To              []string
 	Cc              []string
 	Bcc             []string
@@ -103,7 +104,7 @@ func (m *Message) Tolist() []string {
 func (m *Message) Bytes() []byte {
 	buf := bytes.NewBuffer(nil)
 
-	buf.WriteString("From: " + m.From + "\r\n")
+	buf.WriteString("From: " + m.From.String() + "\r\n")
 
 	t := time.Now()
 	buf.WriteString("Date: " + t.Format(time.RFC822) + "\r\n")
@@ -175,5 +176,5 @@ func (m *Message) Bytes() []byte {
 }
 
 func Send(addr string, auth smtp.Auth, m *Message) error {
-	return smtp.SendMail(addr, auth, m.From, m.Tolist(), m.Bytes())
+	return smtp.SendMail(addr, auth, m.From.Address, m.Tolist(), m.Bytes())
 }
