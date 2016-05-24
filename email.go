@@ -126,7 +126,7 @@ func (m *Message) Bytes() []byte {
 
 	if len(m.Attachments) > 0 {
 		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary + "\r\n")
-		buf.WriteString("--" + boundary + "\r\n")
+		buf.WriteString("\r\n--" + boundary + "\r\n")
 	}
 
 	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\r\n\r\n", m.BodyContentType))
