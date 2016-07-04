@@ -114,6 +114,9 @@ func (m *Message) Bytes() []byte {
 		buf.WriteString("Cc: " + strings.Join(m.Cc, ",") + "\r\n")
 	}
 
+	//fix  Encode
+	var coder = base64.StdEncoding
+	var subject = "=?UTF-8?B?" + coder.EncodeToString([]byte(m.Subject)) + "?=";
 	buf.WriteString("Subject: " + m.Subject + "\r\n")
 
 	if len(m.ReplyTo) > 0 {
