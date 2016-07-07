@@ -30,4 +30,18 @@ go get github.com/scorredoira/email
 	}
 ```
 
+# Html
 
+```go
+	// use the html constructor
+	m := email.NewHTMLMessage("Hi", "this is the body")
+```
+
+# Inline
+
+```go
+	// use Inline to display the attachment inline.
+	if err := m.Inline("main.go"); err != nil {
+		log.Fatal(err)
+	}
+```
