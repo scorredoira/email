@@ -6,46 +6,26 @@ An easy way to send emails with attachments in Go
 go get github.com/scorredoira/email
 ```
 
-**Basic Usage**
+**Usage**
 
 ```go
-package main
-
-import (
-    "github.com/scorredoira/email"
-    "net/smtp"
-    "net/mail"
-)
-
-func main() {
-    m := email.NewMessage("Hi", "this is the body")
-    m.From = mail.Address{
-        Name: "From Name",
-        Address: "from@example.com",
-    }
+	// compose the message
+	m := email.NewMessage("Hi", "this is the body")
+	m.From = mail.Address{Name: "From", Address: "from@example.com"}
     m.To = []string{"to@example.com"}
     m.Cc = []string{"cc1@example.com", "cc2@example.com"}
     m.Bcc = []string{"bcc1@example.com", "bcc2@example.com"}
 
-    err = email.Send("smtp.gmail.com:587", smtp.PlainAuth("", "user", "password", "smtp.gmail.com"), m)
-}
-```
+	// add attachments
+	if err := m.Attach("email.go"); err != nil {
+		log.Fatal(err)
+	}
 
-**Send attachments**
-
-```go
-m := email.NewMessage("Hi", "this is the body")
-m.From = mail.Address{
-    Name: "From Name",
-    Address: "from@example.com",
-}
-m.To = []string{"to@example.com"}
-err := m.Attach("picture.png")
-if err != nil {
-    log.Println(err)
-}
-
-err = email.Send("smtp.gmail.com:587", smtp.PlainAuth("", "user", "password", "smtp.gmail.com"), m)
+	// send it
+	auth := smtp.PlainAuth("", "from@example.com", "pwd", "smtp.zoho.com")	
+	if err := email.Send("smtp.zoho.com:587", auth, m); err != nil {
+		log.Fatal(err)
+	}
 ```
 
 **LICENSE**
