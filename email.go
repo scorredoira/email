@@ -116,8 +116,8 @@ func (m *Message) Bytes() []byte {
 
 	//fix  Encode
 	var coder = base64.StdEncoding
-	var subject = "=?UTF-8?B?" + coder.EncodeToString([]byte(m.Subject)) + "?=";
-	buf.WriteString("Subject: " + m.Subject + "\r\n")
+	var subject = "=?UTF-8?B?" + coder.EncodeToString([]byte(m.Subject)) + "?="
+	buf.WriteString("Subject: " + subject + "\r\n")
 
 	if len(m.ReplyTo) > 0 {
 		buf.WriteString("Reply-To: " + m.ReplyTo + "\r\n")
