@@ -1,5 +1,4 @@
-// Copyright 2012 Santiago Corredoira
-// Distributed under a BSD-like license.
+// Package email allows to send emails with attachments.
 package email
 
 import (
@@ -15,12 +14,14 @@ import (
 	"time"
 )
 
+// Attachment represents an email attachment.
 type Attachment struct {
 	Filename string
 	Data     []byte
 	Inline   bool
 }
 
+// Message represents a smtp message.
 type Message struct {
 	From            mail.Address
 	To              []string
@@ -50,6 +51,7 @@ func (m *Message) attach(file string, inline bool) error {
 	return nil
 }
 
+// AttachBuffer attaches a binary attachment.
 func (m *Message) AttachBuffer(filename string, buf []byte, inline bool) error {
 	m.Attachments[filename] = &Attachment{
 		Filename: filename,
@@ -59,10 +61,12 @@ func (m *Message) AttachBuffer(filename string, buf []byte, inline bool) error {
 	return nil
 }
 
+// Attach attaches a file.
 func (m *Message) Attach(file string) error {
 	return m.attach(file, false)
 }
 
+// Inline includes a file as an inline attachment.
 func (m *Message) Inline(file string) error {
 	return m.attach(file, true)
 }
@@ -80,12 +84,12 @@ func NewMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/plain")
 }
 
-// NewMessage returns a new Message that can compose an HTML email with attachments
+// NewHTMLMessage returns a new Message that can compose an HTML email with attachments
 func NewHTMLMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/html")
 }
 
-// ToList returns all the recipients of the email
+// Tolist returns all the recipients of the email
 func (m *Message) Tolist() []string {
 	tolist := m.To
 
@@ -178,6 +182,7 @@ func (m *Message) Bytes() []byte {
 	return buf.Bytes()
 }
 
+// Send sends the message.
 func Send(addr string, auth smtp.Auth, m *Message) error {
 	return smtp.SendMail(addr, auth, m.From.Address, m.Tolist(), m.Bytes())
 }
