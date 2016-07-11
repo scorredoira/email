@@ -159,7 +159,10 @@ func (m *Message) Bytes() []byte {
 					buf.WriteString("Content-Type: application/octet-stream\r\n")
 				}
 				buf.WriteString("Content-Transfer-Encoding: base64\r\n")
-				buf.WriteString("Content-Disposition: attachment; filename=\"" + attachment.Filename + "\"\r\n\r\n")
+
+				buf.WriteString("Content-Disposition: attachment; filename=\"=?UTF-8?B?")
+				buf.WriteString(coder.EncodeToString([]byte(attachment.Filename)))
+				buf.WriteString("?=\"\r\n\r\n")
 
 				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
 				base64.StdEncoding.Encode(b, attachment.Data)
