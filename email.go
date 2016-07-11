@@ -142,6 +142,8 @@ func (m *Message) Bytes() []byte {
 
 	if len(m.Attachments) > 0 {
 		for _, attachment := range m.Attachments {
+			//fix  Filename Encode
+			attachment.Filename = "=?UTF-8?B?" + coder.EncodeToString([]byte(attachment.Filename)) + "?=";
 			buf.WriteString("\r\n\r\n--" + boundary + "\r\n")
 
 			if attachment.Inline {
