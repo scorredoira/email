@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"mime"
 	"net/mail"
@@ -95,6 +96,24 @@ func (m *Message) Tolist() []string {
 	tolist = append(tolist, m.Bcc...)
 
 	return tolist
+}
+
+// HTMLTemplate parses a HTML template into the body
+func (m *Message) HTMLTemplate(file string, data interface{}) error {
+	t, err := template.ParseFiles(file)
+	if err != nil {
+		return fmt.Errorf("failure parsing template: %v", err)
+	}
+
+	buf := new(bytes.Buffer)
+	if err := t.Execute(buf, data); err != nil {
+		return fmt.Errorf("template execution failed: %v", err)
+	}
+
+	m.Body = buf.String()
+	// Force content type to html
+	m.BodyContentType = "text/html"
+	return nil
 }
 
 // Bytes returns the mail data
