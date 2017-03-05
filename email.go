@@ -91,15 +91,8 @@ func NewHTMLMessage(subject string, body string) *Message {
 
 // Tolist returns all the recipients of the email
 func (m *Message) Tolist() []string {
-	tolist := m.To
-
-	for _, cc := range m.Cc {
-		tolist = append(tolist, cc)
-	}
-
-	for _, bcc := range m.Bcc {
-		tolist = append(tolist, bcc)
-	}
+	tolist := append(m.To, m.Cc...)
+	tolist = append(tolist, m.Bcc...)
 
 	return tolist
 }
