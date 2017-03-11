@@ -80,12 +80,12 @@ func newMessage(subject string, body string, bodyContentType string) *Message {
 	return m
 }
 
-// NewMessage returns a new Message that can compose an email with attachments
+// NewMessage returns a new Message that composes an email
 func NewMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/plain")
 }
 
-// NewHTMLMessage returns a new Message that can compose an HTML email with attachments
+// NewHTMLMessage returns a new Message that composes an HTML email
 func NewHTMLMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/html")
 }
@@ -144,11 +144,13 @@ func (m *Message) Bytes() []byte {
 	boundary := "f46d043c813270fc6b04c2d223da"
 
 	if len(m.Attachments) > 0 {
-		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary + "\r\n")
+		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary +
+			"\r\n")
 		buf.WriteString("\r\n--" + boundary + "\r\n")
 	}
 
-	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\r\n\r\n", m.BodyContentType))
+	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\r\n\r\n",
+		m.BodyContentType))
 	buf.WriteString(m.Body)
 	buf.WriteString("\r\n")
 
@@ -158,7 +160,8 @@ func (m *Message) Bytes() []byte {
 
 			if attachment.Inline {
 				buf.WriteString("Content-Type: message/rfc822\r\n")
-				buf.WriteString("Content-Disposition: inline; filename=\"" + attachment.Filename + "\"\r\n\r\n")
+				buf.WriteString("Content-Disposition: inline; filename=\"" +
+					attachment.Filename + "\"\r\n\r\n")
 
 				buf.Write(attachment.Data)
 			} else {
