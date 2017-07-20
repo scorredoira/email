@@ -111,7 +111,7 @@ func (m *Message) Bytes() []byte {
 	buf.WriteString("From: " + m.From.String() + "\r\n")
 
 	t := time.Now()
-	buf.WriteString("Date: " + t.Format(time.RFC822) + "\r\n")
+	buf.WriteString("Date: " + t.Format(time.RFC822Z) + "\r\n")
 
 	buf.WriteString("To: " + strings.Join(m.To, ",") + "\r\n")
 	if len(m.Cc) > 0 {
