@@ -3,10 +3,12 @@ package email
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"mime"
+	"net"
 	"net/mail"
 	"net/smtp"
 	"path/filepath"
@@ -185,7 +187,63 @@ func (m *Message) Bytes() []byte {
 	return buf.Bytes()
 }
 
+// modified from net/smtp/smtp.go, add TLS support
+func SendMail(use_tls bool, addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+	var err error
+	var c *smtp.Client
+
+	host, _, _ := net.SplitHostPort(addr)
+
+	if use_tls {
+		tlsconfig := &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         host,
+		}
+		conn, err := tls.Dial("tcp", addr, tlsconfig)
+		if err != nil {
+			return err
+		}
+
+		c, err = smtp.NewClient(conn, host)
+		if err != nil {
+			return err
+		}
+	} else {
+		c, err = smtp.Dial(addr)
+		if err != nil {
+			return err
+		}
+	}
+	defer c.Close()
+
+	if err = c.Auth(a); err != nil {
+		return err
+	}
+
+	if err = c.Mail(from); err != nil {
+		return err
+	}
+	for _, addr := range to {
+		if err = c.Rcpt(addr); err != nil {
+			return err
+		}
+	}
+	w, err := c.Data()
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(msg)
+	if err != nil {
+		return err
+	}
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+	return c.Quit()
+}
+
 // Send sends the message.
-func Send(addr string, auth smtp.Auth, m *Message) error {
-	return smtp.SendMail(addr, auth, m.From.Address, m.Tolist(), m.Bytes())
+func Send(use_tls bool, addr string, auth smtp.Auth, m *Message) error {
+	return SendMail(use_tls, addr, auth, m.From.Address, m.Tolist(), m.Bytes())
 }
