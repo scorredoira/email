@@ -10,6 +10,7 @@ import (
 	"net/mail"
 	"net/smtp"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -160,9 +161,30 @@ func (m *Message) Bytes() []byte {
 				}
 				buf.WriteString("Content-Transfer-Encoding: base64\r\n")
 
-				buf.WriteString("Content-Disposition: attachment; filename=\"=?UTF-8?B?")
-				buf.WriteString(coder.EncodeToString([]byte(attachment.Filename)))
-				buf.WriteString("?=\"\r\n\r\n")
+				// Filename line splitting behaviour is taken from Thunderbird:
+				// "filename=" if up to 55 characters
+				// "filename*0=" and so on if more than 55 characters, splitting the filename each 60 characters
+
+				buf.WriteString("Content-Disposition: attachment;\r\n")
+				filename := "=?UTF-8?B?" + coder.EncodeToString([]byte(attachment.Filename)) + "?="
+				if len(filename) <= 55 {
+					buf.WriteString(" filename=\"" + filename + "\"\r\n")
+				} else {
+					maxI := (len(filename)-1) / 60 // -1 for correct ceiling
+					for i := 0; i <= maxI; i++ {
+						begin := i * 60;
+						end := (i + 1) * 60;
+						if end > len(filename) {
+							end = len(filename)
+						}
+						buf.WriteString(" filename*" + strconv.Itoa(i) + "=\"" + filename[begin:end] + "\"")
+						if i != maxI {
+							buf.WriteString(";")
+						}
+						buf.WriteString("\r\n")
+					}
+				}
+				buf.WriteString("\r\n")
 
 				b := make([]byte, base64.StdEncoding.EncodedLen(len(attachment.Data)))
 				base64.StdEncoding.Encode(b, attachment.Data)
