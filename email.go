@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"errors"
 )
 
 // Attachment represents an email attachment.
@@ -192,6 +193,10 @@ func SendMail(use_tls bool, addr string, a smtp.Auth, from string, to []string, 
 	var err error
 	var c *smtp.Client
 
+	if a == nil {
+		return errors.New("Not found email auth info, please check it again! ")
+	}
+	
 	host, _, _ := net.SplitHostPort(addr)
 
 	if use_tls {
