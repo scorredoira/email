@@ -21,6 +21,12 @@ type Attachment struct {
 	Inline   bool
 }
 
+// Header represents an additional email header.
+type Header struct {
+	Key   string
+	Value string
+}
+
 // Message represents a smtp message.
 type Message struct {
 	From            mail.Address
@@ -31,6 +37,7 @@ type Message struct {
 	Subject         string
 	Body            string
 	BodyContentType string
+	Headers 		[]Header
 	Attachments     map[string]*Attachment
 }
 
@@ -69,6 +76,13 @@ func (m *Message) Attach(file string) error {
 // Inline includes a file as an inline attachment.
 func (m *Message) Inline(file string) error {
 	return m.attach(file, true)
+}
+
+// Ads a Header to message
+func (m *Message) AddHeader(key string, value string) Header {
+	newHeader := Header{Key: key, Value: value}
+	m.Headers = append(m.Headers, newHeader)
+	return newHeader
 }
 
 func newMessage(subject string, body string, bodyContentType string) *Message {
@@ -128,6 +142,13 @@ func (m *Message) Bytes() []byte {
 	}
 
 	buf.WriteString("MIME-Version: 1.0\r\n")
+
+	// Add custom headers
+	if len(m.Headers) > 0 {
+		for _, header := range m.Headers {
+			buf.WriteString(fmt.Sprintf("%s: %s\r\n", header.Key, header.Value))
+		}
+	}
 
 	boundary := "f46d043c813270fc6b04c2d223da"
 
