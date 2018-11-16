@@ -5,7 +5,7 @@ import (
 	"net/mail"
 	"net/smtp"
 
-	"email"
+	"github.com/scorredoira/email"
 )
 
 func Example() {
