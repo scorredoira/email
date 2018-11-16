@@ -37,7 +37,7 @@ type Message struct {
 	Subject         string
 	Body            string
 	BodyContentType string
-	Headers         	[]Header
+	Headers 		[]Header
 	Attachments     map[string]*Attachment
 }
 
