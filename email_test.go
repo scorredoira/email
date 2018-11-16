@@ -33,13 +33,15 @@ func TestAddTo(t *testing.T) {
 	names := []string{"firstName", "secondName"}
 	addresses := []string{"firstAddress", "secondAddress"}
 
-	m.AddTo(mail.Address{Name: names[0], Address: addresses[0]})
-	if m.To[0] != names[0]+" "+"<"+addresses[0]+">" {
+	firstAddress := mail.Address{Name: names[0], Address: addresses[0]}
+	m.AddTo(firstAddress)
+	if m.To[0] != firstAddress.String() {
 		t.Fatal("Incorrect first element")
 	}
 
-	m.AddTo(mail.Address{Name: names[1], Address: addresses[1]})
-	if m.To[1] != names[1]+" "+"<"+addresses[1]+">" {
+	secondAddress := mail.Address{Name: names[1], Address: addresses[1]}
+	m.AddTo(secondAddress)
+	if m.To[1] != secondAddress.String() {
 		t.Fatal("Incorrect second element")
 	}
 }
@@ -49,13 +51,15 @@ func TestAddCc(t *testing.T) {
 	names := []string{"firstName", "secondName"}
 	addresses := []string{"firstAddress", "secondAddress"}
 
-	m.AddCc(mail.Address{Name: names[0], Address: addresses[0]})
-	if m.Cc[0] != names[0]+" "+"<"+addresses[0]+">" {
+	firstAddress := mail.Address{Name: names[0], Address: addresses[0]}
+	m.AddCc(firstAddress)
+	if m.Cc[0] != firstAddress.String() {
 		t.Fatal("Incorrect first element")
 	}
 
-	m.AddCc(mail.Address{Name: names[1], Address: addresses[1]})
-	if m.Cc[1] != names[1]+" "+"<"+addresses[1]+">" {
+	secondAddress := mail.Address{Name: names[1], Address: addresses[1]}
+	m.AddCc(secondAddress)
+	if m.Cc[1] != secondAddress.String() {
 		t.Fatal("Incorrect second element")
 	}
 }
@@ -65,13 +69,15 @@ func TestAddBcc(t *testing.T) {
 	names := []string{"firstName", "secondName"}
 	addresses := []string{"firstAddress", "secondAddress"}
 
-	m.AddBcc(mail.Address{Name: names[0], Address: addresses[0]})
-	if m.Bcc[0] != names[0]+" "+"<"+addresses[0]+">" {
+	firstAddress := mail.Address{Name: names[0], Address: addresses[0]}
+	m.AddBcc(firstAddress)
+	if m.Bcc[0] != firstAddress.String() {
 		t.Fatal("Incorrect first element")
 	}
 
-	m.AddBcc(mail.Address{Name: names[1], Address: addresses[1]})
-	if m.Bcc[1] != names[1]+" "+"<"+addresses[1]+">" {
+	secondAddress := mail.Address{Name: names[1], Address: addresses[1]}
+	m.AddBcc(secondAddress)
+	if m.Bcc[1] != secondAddress.String() {
 		t.Fatal("Incorrect second element")
 	}
 }

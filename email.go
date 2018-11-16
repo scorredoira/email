@@ -37,7 +37,7 @@ type Message struct {
 	Subject         string
 	Body            string
 	BodyContentType string
-	Headers 		[]Header
+	Headers         []Header
 	Attachments     map[string]*Attachment
 }
 
@@ -59,17 +59,17 @@ func (m *Message) attach(file string, inline bool) error {
 }
 
 func (m *Message) AddTo(address mail.Address) []string {
-	m.To = append(m.To, address.Name+" "+"<"+address.Address+">")
+	m.To = append(m.To, address.String())
 	return m.To
 }
 
 func (m *Message) AddCc(address mail.Address) []string {
-	m.Cc = append(m.Cc, address.Name+" "+"<"+address.Address+">")
+	m.Cc = append(m.Cc, address.String())
 	return m.Cc
 }
 
 func (m *Message) AddBcc(address mail.Address) []string {
-	m.Bcc = append(m.Bcc, address.Name+" "+"<"+address.Address+">")
+	m.Bcc = append(m.Bcc, address.String())
 	return m.Bcc
 }
 
