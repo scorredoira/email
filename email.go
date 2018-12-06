@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"mime"
 	"net/mail"
@@ -108,29 +109,40 @@ func newMessage(subject string, body string, bodyContentType string) *Message {
 	return m
 }
 
-// NewMessage returns a new Message that can compose an email with attachments
+// NewMessage returns a new Message that composes an email
 func NewMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/plain")
 }
 
-// NewHTMLMessage returns a new Message that can compose an HTML email with attachments
+// NewHTMLMessage returns a new Message that composes an HTML email
 func NewHTMLMessage(subject string, body string) *Message {
 	return newMessage(subject, body, "text/html")
 }
 
 // Tolist returns all the recipients of the email
 func (m *Message) Tolist() []string {
-	tolist := m.To
-
-	for _, cc := range m.Cc {
-		tolist = append(tolist, cc)
-	}
-
-	for _, bcc := range m.Bcc {
-		tolist = append(tolist, bcc)
-	}
+	tolist := append(m.To, m.Cc...)
+	tolist = append(tolist, m.Bcc...)
 
 	return tolist
+}
+
+// HTMLTemplate parses a HTML template into the body
+func (m *Message) HTMLTemplate(file string, data interface{}) error {
+	t, err := template.ParseFiles(file)
+	if err != nil {
+		return fmt.Errorf("failure parsing template: %v", err)
+	}
+
+	buf := new(bytes.Buffer)
+	if err := t.Execute(buf, data); err != nil {
+		return fmt.Errorf("template execution failed: %v", err)
+	}
+
+	m.Body = buf.String()
+	// Force content type to html
+	m.BodyContentType = "text/html"
+	return nil
 }
 
 // Bytes returns the mail data
@@ -168,11 +180,13 @@ func (m *Message) Bytes() []byte {
 	boundary := "f46d043c813270fc6b04c2d223da"
 
 	if len(m.Attachments) > 0 {
-		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary + "\r\n")
+		buf.WriteString("Content-Type: multipart/mixed; boundary=" + boundary +
+			"\r\n")
 		buf.WriteString("\r\n--" + boundary + "\r\n")
 	}
 
-	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\r\n\r\n", m.BodyContentType))
+	buf.WriteString(fmt.Sprintf("Content-Type: %s; charset=utf-8\r\n\r\n",
+		m.BodyContentType))
 	buf.WriteString(m.Body)
 	buf.WriteString("\r\n")
 
@@ -182,7 +196,8 @@ func (m *Message) Bytes() []byte {
 
 			if attachment.Inline {
 				buf.WriteString("Content-Type: message/rfc822\r\n")
-				buf.WriteString("Content-Disposition: inline; filename=\"" + attachment.Filename + "\"\r\n\r\n")
+				buf.WriteString("Content-Disposition: inline; filename=\"" +
+					attachment.Filename + "\"\r\n\r\n")
 
 				buf.Write(attachment.Data)
 			} else {
