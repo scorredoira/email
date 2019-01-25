@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime"
@@ -14,7 +15,6 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"errors"
 )
 
 // Attachment represents an email attachment.
@@ -196,7 +196,7 @@ func SendMail(use_tls bool, addr string, a smtp.Auth, from string, to []string, 
 	if a == nil {
 		return errors.New("Not found email auth info, please check it again! ")
 	}
-	
+
 	host, _, _ := net.SplitHostPort(addr)
 
 	if use_tls {
@@ -249,6 +249,6 @@ func SendMail(use_tls bool, addr string, a smtp.Auth, from string, to []string, 
 }
 
 // Send sends the message.
-func Send(use_tls bool, addr string, auth smtp.Auth, m *Message) error {
+func Send(addr string, auth smtp.Auth, m *Message, use_tls bool) error {
 	return SendMail(use_tls, addr, auth, m.From.Address, m.Tolist(), m.Bytes())
 }
