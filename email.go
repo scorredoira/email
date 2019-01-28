@@ -189,7 +189,7 @@ func (m *Message) Bytes() []byte {
 }
 
 // modified from net/smtp/smtp.go, add TLS support
-func SendMail(use_tls bool, addr string, a smtp.Auth, from string, to []string, msg []byte) error {
+func SendMail(addr string, a smtp.Auth, from string, to []string, msg []byte, use_tls bool) error {
 	var err error
 	var c *smtp.Client
 
@@ -250,5 +250,5 @@ func SendMail(use_tls bool, addr string, a smtp.Auth, from string, to []string, 
 
 // Send sends the message.
 func Send(addr string, auth smtp.Auth, m *Message, use_tls bool) error {
-	return SendMail(use_tls, addr, auth, m.From.Address, m.Tolist(), m.Bytes())
+	return SendMail(addr, auth, m.From.Address, m.Tolist(), m.Bytes(), use_tls)
 }
