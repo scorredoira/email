@@ -120,17 +120,24 @@ func NewHTMLMessage(subject string, body string) *Message {
 
 // Tolist returns all the recipients of the email
 func (m *Message) Tolist() []string {
-	tolist := m.To
+	rcptList := []string{}
 
-	for _, cc := range m.Cc {
-		tolist = append(tolist, cc)
+	toList, _ := mail.ParseAddressList(strings.Join(m.To, ","))
+	for _, to := range toList {
+		rcptList = append(rcptList, to.Address)
 	}
 
-	for _, bcc := range m.Bcc {
-		tolist = append(tolist, bcc)
+	ccList, _ := mail.ParseAddressList(strings.Join(m.Cc, ","))
+	for _, cc := range ccList {
+		rcptList = append(rcptList, cc.Address)
 	}
 
-	return tolist
+	bccList, _ := mail.ParseAddressList(strings.Join(m.Bcc, ","))
+	for _, bcc := range bccList {
+		rcptList = append(rcptList, bcc.Address)
+	}
+
+	return rcptList
 }
 
 // Bytes returns the mail data
