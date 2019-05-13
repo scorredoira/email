@@ -211,11 +211,13 @@ func (m *Message) Bytes() []byte {
 				base64.StdEncoding.Encode(b, attachment.Data)
 
 				// write base64 content in lines of up to 76 chars
-				for i, l := 0, len(b); i < l; i++ {
-					buf.WriteByte(b[i])
-					if (i+1)%76 == 0 {
-						buf.WriteString("\r\n")
-					}
+				var charLength = 76
+				for i := 0; i < len(b)/charLength; i++ {
+					buf.Write(b[i*charLength : (i+1)*charLength])
+					buf.WriteString("\r\n")
+				}
+				if n, _ := buf.Write(b[(len(b)/charLength)*charLength:]); n > 0 {
+					buf.WriteString("\r\n")
 				}
 			}
 
