@@ -1,3 +1,11 @@
+
+# PROJECT DISCONTINUED
+
+This repository only exists for archival purposes.
+
+---
+
+
 # email [![Travis-CI](https://travis-ci.org/scorredoira/email.svg?branch=master)](https://travis-ci.org/scorredoira/email) [![GoDoc](https://godoc.org/github.com/scorredoira/email?status.svg)](http://godoc.org/github.com/scorredoira/email) [![Report card](https://goreportcard.com/badge/github.com/scorredoira/email)](https://goreportcard.com/report/github.com/scorredoira/email)
 
 An easy way to send emails with attachments in Go
