@@ -1,11 +1,10 @@
 package email_test
 
 import (
+	"github.com/yangfei4913438/email"
 	"log"
 	"net/mail"
 	"net/smtp"
-
-	"github.com/scorredoira/email"
 )
 
 func Example() {
